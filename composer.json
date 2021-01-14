@@ -1,0 +1,29 @@
+{
+	"name": "shineunited/wptools",
+	"type": "composer-plugin",
+	"license": "MIT",
+	"require": {
+		"php": ">=5.6",
+		"composer-plugin-api": "^1.0 || ^2.0",
+		"twig/twig": "^2.13",
+		"symfony/filesystem": "^4.4",
+		"oohology/gitignorewriter": "^1.1"
+	},
+	"require-dev": {
+		"composer/composer": ">=1.0",
+		"phpunit/phpunit": ">=5.5.0"
+	},
+	"extra": {
+		"class": "ShineUnited\\WordPressTools\\Plugin"
+	},
+	"autoload": {
+		"psr-4": {
+			"ShineUnited\\WordPressTools\\": "src/"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"ShineUnited\\WordPressTools\\Tests\\": "tests/"
+		}
+	}
+}
