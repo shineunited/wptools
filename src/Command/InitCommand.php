@@ -271,10 +271,10 @@ class InitCommand extends RequireCommand {
 		$filesystem[$composerFilePath]->addProperty('extra.wordpress-install-dir', $wpInstallPath);
 
 		// extra.installer-paths
-		$filesystem[$composerFilePath]->addProperty('extra.installer-paths.type:wordpress-muplugin', $mupluginsPath . '/{$name}');
-		$filesystem[$composerFilePath]->addProperty('extra.installer-paths.type:wordpress-plugin', $pluginsPath . '/{$name}');
-		$filesystem[$composerFilePath]->addProperty('extra.installer-paths.type:wordpress-theme', $themesPath . '/{$name}');
-		$filesystem[$composerFilePath]->addProperty('extra.installer-paths.type:wordpress-dropin', $wpContentPath . '/{$name}');
+		$filesystem[$composerFilePath]->addProperty($mupluginsPath . '/{$name}', 'extra.installer-paths.type:wordpress-muplugin');
+		$filesystem[$composerFilePath]->addProperty($pluginsPath . '/{$name}', 'extra.installer-paths.type:wordpress-plugin');
+		$filesystem[$composerFilePath]->addProperty($themesPath . '/{$name}', 'extra.installer-paths.type:wordpress-theme');
+		$filesystem[$composerFilePath]->addProperty($wpContentPath . '/{$name}', 'extra.installer-paths.type:wordpress-dropin');
 
 
 		// save filesystem
