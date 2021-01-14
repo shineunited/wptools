@@ -15,7 +15,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\OutputInterface;
 //use Symfony\Component\Console\Question\Question;
-use Composer\Command\BaseCommand;
+//use Composer\Command\BaseCommand;
 use Twig\Loader\FilesystemLoader;
 use Twig\Environment;
 //use Symfony\Component\Filesystem\Filesystem;
@@ -23,11 +23,12 @@ use Composer\Factory;
 //use Composer\Json\JsonManipulator;
 //use GitIgnoreWriter\GitIgnoreWriter;
 
-class InitCommand extends BaseCommand {
+class InitCommand extends RequireCommand {
 	private $config;
 	//private $pathOptions;
 
 	protected function configure() {
+		parent::configure();
 		$this->setName('wp-init');
 
 		/*
@@ -266,54 +267,21 @@ class InitCommand extends BaseCommand {
 
 		$filesystem[$composerFilePath] = new ComposerFile($filesystem[$composerFilePath]);
 
-
-
-		//$composer = $this->getComposer();
-		//$package = $composer->getPackage();
-		//$extra = $package->getExtra();
-
-
-		// wordpress-install-dir
+		// extra.wordpress-install-dir
 		$filesystem[$composerFilePath]->addProperty('extra.wordpress-install-dir', $wpInstallPath);
 
+		// extra.installer-paths
 		$filesystem[$composerFilePath]->addProperty('extra.installer-paths.type:wordpress-muplugin', $mupluginsPath . '/{$name}');
 		$filesystem[$composerFilePath]->addProperty('extra.installer-paths.type:wordpress-plugin', $pluginsPath . '/{$name}');
 		$filesystem[$composerFilePath]->addProperty('extra.installer-paths.type:wordpress-theme', $themesPath . '/{$name}');
 		$filesystem[$composerFilePath]->addProperty('extra.installer-paths.type:wordpress-dropin', $wpContentPath . '/{$name}');
 
 
-
-		/*
-		$filesystem['composer.json']->addProperty('extra.wptools', array(
-			'version' => 1,
-			'paths'   => $config->listPaths()
-		));
-		*/
-
-
-
-
-
-
 		// save filesystem
 		$filesystem->save();
 
-
-		// require bedrock packages
-		$requireCommand = $this->getApplication()->find('wp-require');
-
-		$requireArguments = array();
-		$requireArguments['packages'] = 'bedrock';
-		if($requireCommand->getDefinition()->hasOption('fixed') && $input->getOption('fixed')) {
-			$requireArguments['--fixed'] = true;
-		}
-
-		$requireInput = new ArrayInput($requireArguments);
-
-		$returnCode = $requireCommand->run($requireInput, $output);
-
-
-		$output->writeln('Executing');
+		$input->setArgument('packages', array('bedrock'));
+		parent::execute($input, $output);
 	}
 
 	private function addPathOption($name, $description, $default) {
