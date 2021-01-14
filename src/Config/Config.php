@@ -10,7 +10,7 @@ class Config {
 	private $filesystem;
 	private $composer;
 
-	private $pathNames;
+	private $pathInfo;
 	private $pathAliases;
 
 	private $configPaths;
@@ -19,12 +19,36 @@ class Config {
 		$this->filesystem = new Filesystem();
 		$this->composer = $composer;
 
-		$this->pathNames = array(
+		$this->pathInfo = array();
+
+		$this->definePath(
 			'webroot',
+			'Webroot directory path',
+			'web'
+		);
+
+		$this->definePath(
 			'home-dir',
+			'WordPress home directory path',
+			'web'
+		);
+
+		$this->definePath(
 			'config-dir',
+			'Configuration directory path',
+			'cfg'
+		);
+
+		$this->definePath(
 			'install-dir',
-			'content-dir'
+			'WordPress install directory path',
+			'web/wp'
+		);
+
+		$this->definePath(
+			'content-dir',
+			'WordPress content directory path',
+			'web/app'
 		);
 
 		$this->pathAliases = array(
@@ -41,40 +65,11 @@ class Config {
 		$this->configPaths = array();
 	}
 
-	private function getComposerPackage() {
-		return $this->composer->getPackage();
-	}
-
-	private function getComposerExtra() {
-		return $this->getComposerPackage()->getExtra();
-	}
-
-	private function getComposerConfig() {
-		return $this->composer->getConfig();
-	}
-
-	private function getWPToolsConfig() {
-		$extra = $this->getComposerExtra();
-
-		if(!isset($extra['wptools']) || !is_array($extra['wptools'])) {
-			throw new \Exception('WPTools config not found');
-		}
-
-		return $extra['wptools'];
-	}
-
-	public function getPackageType() {
-		return $this->getComposerPackage()->getType();
-	}
-
-	public function getVersion() {
-		$config = $this->getWPToolsConfig();
-
-		if(isset($config['version'])) {
-			return $config['version'];
-		}
-
-		return false;
+	protected function definePath($name, $description, $default = null) {
+		$this->pathInfo[$name] = array(
+			'description' => $description,
+			'default'     => $default
+		);
 	}
 
 	public function getVendorDir() {
@@ -118,11 +113,7 @@ class Config {
 	}
 
 	public function hasPath($name) {
-		if(in_array($name, $this->pathNames)) {
-			return true;
-		}
-
-		if(in_array($name, array_keys($this->pathAliases))) {
+		if(in_array($name, $this->listPathNames(true))) {
 			return true;
 		}
 
@@ -131,23 +122,15 @@ class Config {
 
 	public function getPath($name, $relativeTo = false) {
 		if(!$this->hasPath($name)) {
-			throw new \Exception('Unknown path requested "' . $name . '"');
+			throw new \Exception('Unknown path name "' . $name . '"');
 		}
 
 		$targetPath = $this->getWorkingDir() . '/';
-		if(in_array($name, $this->pathNames)) {
+		if(isset($this->pathInfo[$name])) {
 			if(isset($this->configPaths[$name])) {
-				// first check local
 				$targetPath .= $this->configPaths[$name];
 			} else {
-				// check package config
-				$config = $this->getWPToolsConfig();
-
-				if(!isset($config['paths']) || !is_array($config['paths']) || !isset($config['paths'][$name])) {
-					throw new \Exception('Path not defined "' . $name . '"');
-				}
-
-				$targetPath .= $config['paths'][$name];
+				throw new \Exception('Path not set "' . $name . '"');
 			}
 		} elseif(in_array($name, array_keys($this->pathAliases))) {
 			$functionName = $this->pathAliases[$name];
@@ -169,7 +152,7 @@ class Config {
 	}
 
 	public function setPath($name, $path) {
-		if(!in_array($name, $this->pathNames)) {
+		if(!in_array($name, $this->listPathNames())) {
 			throw new \Exception('Unknown path name "' . $name . '"');
 		}
 
@@ -180,10 +163,36 @@ class Config {
 		$this->configPaths[$name] = rtrim($path, '/');
 	}
 
+	public function listPathNames($all = true) {
+		$names = array_keys($this->pathInfo);
+
+		if($all) {
+			return array_merge($names, array_keys($this->pathAliases));
+		}
+
+		return $names;
+	}
+
+	public function getPathDefault($name) {
+		if(!isset($this->pathInfo[$name])) {
+			throw new \Exception('Unknown path name "' . $name . '"');
+		}
+
+		return $this->pathInfo[$name]['default'];
+	}
+
+	public function getPathDescription($name) {
+		if(!isset($this->pathInfo[$name])) {
+			throw new \Exception('Unknown path name "' . $name . '"');
+		}
+
+		return $this->pathInfo[$name]['description'];
+	}
+
 	public function listPaths() {
 		$paths = array();
 
-		foreach($this->pathNames as $name) {
+		foreach(array_keys($this->pathInfo) as $name) {
 			$paths[$name] = $this->getPath($name, 'working-dir');
 		}
 
