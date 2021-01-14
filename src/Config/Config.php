@@ -72,6 +72,10 @@ class Config {
 		);
 	}
 
+	private function getComposerConfig() {
+		return $this->composer->getConfig();
+	}
+
 	public function getVendorDir() {
 		$config = $this->getComposerConfig();
 

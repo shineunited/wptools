@@ -93,6 +93,7 @@ class InitCommand extends BaseCommand {
 
 		// wordpress
 		$wpUpgradePath = $config->getPath('upgrade-dir', 'working-dir');
+		$wpContentPath = $config->getPath('content-dir', 'working-dir');
 		$wpInstallPath = $config->getPath('install-dir', 'working-dir');
 
 		if(!$filesystem['.gitignore']->exists($wpUpgradePath) || !$filesystem['.gitignore']->exists($wpInstallPath)) {
@@ -261,12 +262,37 @@ class InitCommand extends BaseCommand {
 
 
 		// modify composer file
-		$filesystem['composer.json'] = new ComposerFile($filesystem[Factory::getComposerFile()]);
+		$composerFilePath = Factory::getComposerFile();
 
+		$filesystem[$composerFilePath] = new ComposerFile($filesystem[$composerFilePath]);
+
+
+
+		//$composer = $this->getComposer();
+		//$package = $composer->getPackage();
+		//$extra = $package->getExtra();
+
+
+		// wordpress-install-dir
+		$filesystem[$composerFilePath].addProperty('extra.wordpress-install-dir', $wpInstallPath);
+
+		$filesystem[$composerFilePath].addProperty('extra.installer-paths.type:wordpress-muplugin', $mupluginsPath . '/{$name}');
+		$filesystem[$composerFilePath].addProperty('extra.installer-paths.type:wordpress-plugin', $pluginsPath . '/{$name}');
+		$filesystem[$composerFilePath].addProperty('extra.installer-paths.type:wordpress-theme', $themesPath . '/{$name}');
+		$filesystem[$composerFilePath].addProperty('extra.installer-paths.type:wordpress-dropin', $wpContentPath . '/{$name}');
+
+
+
+		/*
 		$filesystem['composer.json']->addProperty('extra.wptools', array(
 			'version' => 1,
 			'paths'   => $config->listPaths()
 		));
+		*/
+
+
+
+
 
 
 		// save filesystem
