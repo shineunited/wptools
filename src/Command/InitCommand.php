@@ -15,7 +15,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\OutputInterface;
 //use Symfony\Component\Console\Question\Question;
-//use Composer\Command\BaseCommand;
+use Composer\Command\BaseCommand;
 use Twig\Loader\FilesystemLoader;
 use Twig\Environment;
 //use Symfony\Component\Filesystem\Filesystem;
@@ -23,7 +23,7 @@ use Composer\Factory;
 //use Composer\Json\JsonManipulator;
 //use GitIgnoreWriter\GitIgnoreWriter;
 
-class InitCommand extends RequireCommand {
+class InitCommand extends BaseCommand {
 	private $config;
 	//private $pathOptions;
 
@@ -31,18 +31,9 @@ class InitCommand extends RequireCommand {
 		parent::configure();
 		$this->setName('wp-init');
 
-		/*
 		$requireCommand = new RequireCommand();
 		$requireDefinition = $requireCommand->getDefinition();
-		$definition = $this->getDefinition();
-
-		foreach($this->passThruOptions as $optionName) {
-			if($requireDefinition->hasOption($optionName)) {
-				$option = $requireDefinition->getOption($optionName);
-				$definition->addOption($option);
-			}
-		}
-		*/
+		$this->getDefinition()->setOptions($requireDefinition->getOptions());
 	}
 
 	protected function interact(InputInterface $input, OutputInterface $output) {
@@ -271,17 +262,26 @@ class InitCommand extends RequireCommand {
 		$filesystem[$composerFilePath]->addProperty('extra.wordpress-install-dir', $wpInstallPath);
 
 		// extra.installer-paths
-		$filesystem[$composerFilePath]->addProperty($mupluginsPath . '/{$name}', 'extra.installer-paths.type:wordpress-muplugin');
-		$filesystem[$composerFilePath]->addProperty($pluginsPath . '/{$name}', 'extra.installer-paths.type:wordpress-plugin');
-		$filesystem[$composerFilePath]->addProperty($themesPath . '/{$name}', 'extra.installer-paths.type:wordpress-theme');
-		$filesystem[$composerFilePath]->addProperty($wpContentPath . '/{$name}', 'extra.installer-paths.type:wordpress-dropin');
+		$filesystem[$composerFilePath]->addProperty('extra.installer-paths.' . $mupluginsPath . '/{$name}', array('type:wordpress-muplugin'));
+		$filesystem[$composerFilePath]->addProperty('extra.installer-paths.' . $pluginsPath . '/{$name}', array('type:wordpress-plugin'));
+		$filesystem[$composerFilePath]->addProperty('extra.installer-paths.' . $themesPath . '/{$name}', array('type:wordpress-theme'));
+		$filesystem[$composerFilePath]->addProperty('extra.installer-paths.' . $wpContentPath . '/{$name}', array('type:wordpress-dropin'));
 
 
 		// save filesystem
 		$filesystem->save();
 
+		// run requires
+		$requireCommand = $this->getApplication()->find('wp-require');
+		$requireDefinition = $requireCommand->getDefinition();
+
+		$input->bind($requireDefinition);
+		$input->setInteractive(false);
 		$input->setArgument('packages', array('bedrock'));
-		parent::execute($input, $output);
+
+		print_r($input->getArguments());
+
+		$returnCode = $requireCommand->run($input, $output);
 	}
 
 	private function addPathOption($name, $description, $default) {
