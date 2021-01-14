@@ -1,0 +1,3 @@
+path: {{ path('install-dir', 'working-dir') }}
+server:
+  docroot: {{ path('webroot', 'working-dir') }}
