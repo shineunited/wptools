@@ -25,12 +25,12 @@ use Composer\Factory;
 
 class InitCommand extends BaseCommand {
 	private $config;
-	private $pathOptions;
+	//private $pathOptions;
 
 	protected function configure() {
 		$this->setName('wp-init');
 
-
+		/*
 		$requireCommand = new RequireCommand();
 		$requireDefinition = $requireCommand->getDefinition();
 		$definition = $this->getDefinition();
@@ -41,6 +41,7 @@ class InitCommand extends BaseCommand {
 				$definition->addOption($option);
 			}
 		}
+		*/
 	}
 
 	protected function interact(InputInterface $input, OutputInterface $output) {
