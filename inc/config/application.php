@@ -9,13 +9,10 @@
  */
 
 use Roots\WPConfig\Config;
-use Env\Env;
 use Dotenv\Dotenv;
 
-/**
- * Expose global env() function from oscarotero/env
- */
-Env::init();
+use function Env\env;
+
 
 /**
  * Use Dotenv to set required environment variables and load .env file in root
