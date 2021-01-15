@@ -14,14 +14,13 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\OutputInterface;
-//use Symfony\Component\Console\Question\Question;
+
+use Composer\Factory;
 use Composer\Command\BaseCommand;
+
 use Twig\Loader\FilesystemLoader;
 use Twig\Environment;
-//use Symfony\Component\Filesystem\Filesystem;
-use Composer\Factory;
-//use Composer\Json\JsonManipulator;
-//use GitIgnoreWriter\GitIgnoreWriter;
+
 
 class InitCommand extends BaseCommand {
 	private $config;

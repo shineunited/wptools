@@ -7,12 +7,14 @@ use ShineUnited\WordPressTools\Filesystem\ComposerFile;
 
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Composer\Command\RequireCommand as BaseCommand;
 
+use Composer\Factory;
+use Composer\IO\IOInterface;
+use Composer\Command\RequireCommand as BaseCommand;
 use Composer\Repository\ComposerRepository;
 use Composer\Repository\PackageRepository;
 use Composer\Repository\FilterRepository;
-use Composer\Factory;
+
 
 
 class RequireCommand extends BaseCommand {
@@ -26,35 +28,8 @@ class RequireCommand extends BaseCommand {
 	protected function execute(InputInterface $input, OutputInterface $output) {
 		$this->fixPackagesInput($input, $output);
 
-		$composer = $this->getComposer();
-		$repositoryManager = $composer->getRepositoryManager();
+		$io = $this->getIO();
 
-		$hasWPackagist = false;
-		$hasKinsta = false;
-
-		foreach($repositoryManager->getRepositories() as $repository) {
-			print get_class($repository) . "\n";
-
-			if($repository instanceof FilterRepository) {
-				$repository = $repository->getRepository();
-			}
-
-			if(!$hasWPackagist && $repository instanceof ComposerRepository) {
-				$repoConfig = $repository->getRepoConfig();
-				if($repoConfig['url'] == 'https://wpackagist.org') {
-					$hasWPackagist = true;
-				}
-			}
-
-			if(!$hasKinsta && $repository instanceof PackageRepository) {
-				foreach($repository->getPackages() as $package) {
-					if($package->getName() == 'kinsta/kinsta-mu-plugins') {
-						$hasKinsta = true;
-						break;
-					}
-				}
-			}
-		}
 
 		$packages = $input->getArgument('packages');
 		$packages = array_values($packages);
@@ -63,21 +38,55 @@ class RequireCommand extends BaseCommand {
 		$needsKinsta = false;
 
 		if(in_array('kinsta/kinsta-mu-plugins', $packages)) {
+			$io->write('<info>One or more packages require the Kinsta repository</info>', true, IOInterface::VERBOSE);
 			$needsKinsta = true;
 		}
 
 		foreach($packages as $packageName) {
 			if(substr($packageName, 0, 11) == 'wpackagist-') {
+				$io->write('<info>One or more packages require the WPackagist repository</info>', true, IOInterface::VERBOSE);
 				$needsWPackagist = true;
 				break;
 			}
 		}
 
 		if($needsKinsta || $needsWPackagist) {
+			$composer = $this->getComposer();
+			$repositoryManager = $composer->getRepositoryManager();
+
+			$hasWPackagist = false;
+			$hasKinsta = false;
+
+			foreach($repositoryManager->getRepositories() as $repository) {
+				if($repository instanceof FilterRepository) {
+					$repository = $repository->getRepository();
+				}
+
+				if($needsWPackagist && $repository instanceof ComposerRepository) {
+					$repoConfig = $repository->getRepoConfig();
+					if($repoConfig['url'] == 'https://wpackagist.org') {
+						$io->write('<info>WPackagist repository is already installed</info>', true, IOInterface::VERBOSE);
+						$needsWPackagist = false;
+					}
+				}
+
+				if($needsKinsta && $repository instanceof PackageRepository) {
+					foreach($repository->getPackages() as $package) {
+						if($package->getName() == 'kinsta/kinsta-mu-plugins') {
+							$io->write('<info>Kinsta repository is already installed</info>', true, IOInterface::VERBOSE);
+							$needsKinsta = false;
+							break;
+						}
+					}
+				}
+			}
+
 			$filesystem = new Filesystem(getcwd());
 			$filesystem['composer.json'] = new ComposerFile($filesystem['composer.json']);
 
 			if($needsKinsta) {
+				$io->write('<info>Adding Kinsta repository</info>', true, IOInterface::NORMAL);
+
 				$filesystem['composer.json']->addRepository('kinsta', [
 					'type' => 'package',
 					'package' => [
@@ -109,11 +118,12 @@ class RequireCommand extends BaseCommand {
 					]
 				]);
 
-				print 'Adding Kinsta' . "\n";
 				$repositoryManager->addRepository($kinstaRepository);
 			}
 
 			if($needsWPackagist) {
+				$io->write('<info>Adding WPackagist repository</info>', true, IOInterface::NORMAL);
+
 				$filesystem['composer.json']->addRepository('wpackagist', [
 					'type' => 'composer',
 					'url'  => 'https://wpackagist.org',
@@ -123,7 +133,6 @@ class RequireCommand extends BaseCommand {
 					]
 				]);
 
-				$io = $this->getIO();
 				$config = $composer->getConfig();
 				$httpDownloader = Factory::createHttpDownloader($io, $config);
 				$eventDispatcher = $composer->getEventDispatcher();
@@ -132,13 +141,11 @@ class RequireCommand extends BaseCommand {
 					'url' => 'https://wpackagist.org'
 				], $io, $config, $httpDownloader, $eventDispatcher);
 
-				print 'Adding WPackagist' . "\n";
 				$repositoryManager->addRepository($wpackagistRepository);
 			}
 
 			$filesystem->save();
 		}
-
 
 		return parent::execute($input, $output);
 	}
