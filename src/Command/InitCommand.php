@@ -16,6 +16,7 @@ use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use Composer\Factory;
+use Composer\IO\IOInterface;
 use Composer\Command\BaseCommand;
 
 use Twig\Loader\FilesystemLoader;
@@ -66,6 +67,7 @@ class InitCommand extends BaseCommand {
 	}
 
 	protected function execute(InputInterface $input, OutputInterface $output) {
+		$io = $this->getIO();
 		$config = $this->getConfig();
 
 		$validator = new ConfigValidator();
@@ -99,29 +101,35 @@ class InitCommand extends BaseCommand {
 
 		if(!$filesystem['.gitignore']->exists($wpInstallPath)) {
 			$filesystem['.gitignore']->rewind();
+			$io->write('Add <comment>' . $wpInstallPath . '</comment> to <info>.gitignore</info>', true, IOInterface::VERBOSE);
 			$filesystem['.gitignore']->after('# wordpress', $wpInstallPath);
 		}
 
 		if(!$filesystem['.gitignore']->exists($wpUpgradePath)) {
 			$filesystem['.gitignore']->rewind();
+			$io->write('Add <comment>' . $wpUpgradePath . '</comment> to <info>.gitignore</info>', true, IOInterface::VERBOSE);
 			$filesystem['.gitignore']->after('# wordpress', $wpUpgradePath);
 		}
 
 
 		// {webroot}/index.php
 		$webrootIndexPath = $config->getPath('home-dir', 'working-dir') . '/index.php';
+		$io->write('Create <info>' . $webrootIndexPath . '</info>', true, IOInterface::NORMAL);
 		$filesystem[$webrootIndexPath] = new TemplateFile($twig, 'wordpress/index.php');
 
 		// {webroot}/status.php
 		$statusPath = $config->getPath('home-dir', 'working-dir') . '/status.php';
+		$io->write('Create <info>' . $statusPath . '</info>', true, IOInterface::NORMAL);
 		$filesystem[$statusPath] = new TemplateFile($twig, 'wordpress/status.php');
 
 		// {webroot}/.htaccess
 		$htaccessPath = $config->getPath('home-dir', 'working-dir') . '/.htaccess';
+		$io->write('Create <info>' . $htaccessPath . '</info>', true, IOInterface::NORMAL);
 		$filesystem[$htaccessPath] = new TemplateFile($twig, 'wordpress/htaccess');
 
 		// {wpconfig-dir}/wp-config.php
 		$wpconfigPath = $config->getPath('wpconfig-dir', 'working-dir') . '/wp-config.php';
+		$io->write('Create <info>' . $wpconfigPath . '</info>', true, IOInterface::NORMAL);
 		$filesystem[$wpconfigPath] = new TemplateFile($twig, 'wordpress/wp-config.php');
 
 
@@ -130,26 +138,31 @@ class InitCommand extends BaseCommand {
 
 		// {muplugins-dir}/autoloader.php
 		$mupluginsAutoloaderPath = $mupluginsPath . '/autoloader.php';
+		$io->write('Create <info>' . $mupluginsAutoloaderPath . '</info>', true, IOInterface::NORMAL);
 		$filesystem[$mupluginsAutoloaderPath] = new TemplateFile($twig, 'wordpress/autoloader.php');
 
 		// {muplugins-dir}/index.php
 		$mupluginsIndexPath = $mupluginsPath . '/index.php';
+		$io->write('Create <info>' . $mupluginsIndexPath . '</info>', true, IOInterface::NORMAL);
 		$filesystem[$mupluginsIndexPath] = new TemplateFile($twig, 'wordpress/index-placeholder.php');
 
 
 		if(!$filesystem['.gitignore']->exists($mupluginsPath . '/*')) {
 			$filesystem['.gitignore']->eof();
 			$filesystem['.gitignore']->add("\n" . '# mu-plugins');
+			$io->write('Add <comment>' . $mupluginsPath . '/*</comment> to <info>.gitignore</info>', true, IOInterface::VERBOSE);
 			$filesystem['.gitignore']->add($mupluginsPath . '/*');
 		}
 
 		if(!$filesystem['.gitignore']->exists('!' . $mupluginsAutoloaderPath)) {
 			$filesystem['.gitignore']->rewind();
+			$io->write('Add <comment>!' . $mupluginsAutoloaderPath . '/*</comment> to <info>.gitignore</info>', true, IOInterface::VERBOSE);
 			$filesystem['.gitignore']->after($mupluginsPath . '/*', '!' . $mupluginsAutoloaderPath);
 		}
 
 		if(!$filesystem['.gitignore']->exists('!' . $mupluginsIndexPath)) {
 			$filesystem['.gitignore']->rewind();
+			$io->write('Add <comment>!' . $mupluginsIndexPath . '/*</comment> to <info>.gitignore</info>', true, IOInterface::VERBOSE);
 			$filesystem['.gitignore']->after($mupluginsPath . '/*', '!' . $mupluginsIndexPath);
 		}
 
@@ -159,16 +172,19 @@ class InitCommand extends BaseCommand {
 
 		// {plugins-dir}/index.php
 		$pluginsIndexPath = $pluginsPath . '/index.php';
+		$io->write('Create <info>' . $pluginsIndexPath . '</info>', true, IOInterface::NORMAL);
 		$filesystem[$pluginsIndexPath] = new TemplateFile($twig, 'wordpress/index-placeholder.php');
 
 		if(!$filesystem['.gitignore']->exists($pluginsPath . '/*')) {
 			$filesystem['.gitignore']->eof();
 			$filesystem['.gitignore']->add("\n" . '# plugins');
+			$io->write('Add <comment>' . $pluginsPath . '/*</comment> to <info>.gitignore</info>', true, IOInterface::VERBOSE);
 			$filesystem['.gitignore']->add($pluginsPath . '/*');
 		}
 
 		if(!$filesystem['.gitignore']->exists('!' . $pluginsIndexPath)) {
 			$filesystem['.gitignore']->rewind();
+			$io->write('Add <comment>!' . $pluginsIndexPath . '/*</comment> to <info>.gitignore</info>', true, IOInterface::VERBOSE);
 			$filesystem['.gitignore']->after($pluginsPath . '/*', '!' . $pluginsIndexPath);
 		}
 
@@ -178,17 +194,20 @@ class InitCommand extends BaseCommand {
 
 		// {themes-dir}/index.php
 		$themesIndexPath = $themesPath . '/index.php';
+		$io->write('Create <info>' . $themesIndexPath . '</info>', true, IOInterface::NORMAL);
 		$filesystem[$themesIndexPath] = new TemplateFile($twig, 'wordpress/index-placeholder.php');
 
 
 		if(!$filesystem['.gitignore']->exists($themesPath . '/*')) {
 			$filesystem['.gitignore']->eof();
 			$filesystem['.gitignore']->add("\n" . '# themes');
+			$io->write('Add <comment>' . $themesPath . '/*</comment> to <info>.gitignore</info>', true, IOInterface::VERBOSE);
 			$filesystem['.gitignore']->add($themesPath . '/*');
 		}
 
 		if(!$filesystem['.gitignore']->exists('!' . $themesIndexPath)) {
 			$filesystem['.gitignore']->rewind();
+			$io->write('Add <comment>!' . $themesIndexPath . '</comment> to <info>.gitignore</info>', true, IOInterface::VERBOSE);
 			$filesystem['.gitignore']->after($themesPath . '/*', '!' . $themesIndexPath);
 		}
 
@@ -196,16 +215,19 @@ class InitCommand extends BaseCommand {
 		$uploadsPath = $config->getPath('uploads-dir', 'working-dir');
 
 		$uploadsIndexPath = $uploadsPath . '/index.php';
+		$io->write('Create <info>' . $uploadsIndexPath . '</info>', true, IOInterface::NORMAL);
 		$filesystem[$uploadsIndexPath] = new TemplateFile($twig, 'wordpress/index-placeholder.php');
 
 		if(!$filesystem['.gitignore']->exists($uploadsPath . '/*')) {
 			$filesystem['.gitignore']->eof();
 			$filesystem['.gitignore']->add("\n" . '# uploads');
+			$io->write('Add <comment>' . $uploadsPath . '/*</comment> to <info>.gitignore</info>', true, IOInterface::VERBOSE);
 			$filesystem['.gitignore']->add($uploadsPath . '/*');
 		}
 
 		if(!$filesystem['.gitignore']->exists('!' . $uploadsIndexPath)) {
 			$filesystem['.gitignore']->rewind();
+			$io->write('Add <comment>!' . $uploadsIndexPath . '</comment> to <info>.gitignore</info>', true, IOInterface::VERBOSE);
 			$filesystem['.gitignore']->after($uploadsPath . '/*', '!' . $uploadsIndexPath);
 		}
 
@@ -213,14 +235,17 @@ class InitCommand extends BaseCommand {
 
 		// {config-dir}/application.php
 		$configApplicationPath = $config->getPath('config-dir', 'working-dir') . '/application.php';
+		$io->write('Create <info>' . $configApplicationPath . '</info>', true, IOInterface::NORMAL);
 		$filesystem[$configApplicationPath] = new TemplateFile($twig, 'config/application.php');
 
 		// {config-dir}/environments/development.php
 		$configDevelopmentPath = $config->getPath('config-dir', 'working-dir') . '/environments/development.php';
+		$io->write('Create <info>' . $configDevelopmentPath . '</info>', true, IOInterface::NORMAL);
 		$filesystem[$configDevelopmentPath] = new TemplateFile($twig, 'config/development.php');
 
 		// {config-dir}/environments/staging.php
 		$configStagingPath = $config->getPath('config-dir', 'working-dir') . '/environments/staging.php';
+		$io->write('Create <info>' . $configStagingPath . '</info>', true, IOInterface::NORMAL);
 		$filesystem[$configStagingPath] = new TemplateFile($twig, 'config/staging.php');
 
 
@@ -228,27 +253,32 @@ class InitCommand extends BaseCommand {
 
 		// {working-dir}/.env.example
 		$dotenvExamplePath = '.env.example';
+		$io->write('Create <info>' . $dotenvExamplePath . '</info>', true, IOInterface::NORMAL);
 		$filesystem[$dotenvExamplePath] = new TemplateFile($twig, 'config/dotenv.example');
 
 		if(!$filesystem['.gitignore']->exists('.env')) {
 			$filesystem['.gitignore']->eof();
 			$filesystem['.gitignore']->add("\n" . '# environment');
+			$io->write('Add <comment>.env</comment> to <info>.gitignore</info>', true, IOInterface::VERBOSE);
 			$filesystem['.gitignore']->add('.env');
 		}
 
 		if(!$filesystem['.gitignore']->exists('.env.*')) {
 			$filesystem['.gitignore']->rewind();
+			$io->write('Add <comment>.env.*</comment> to <info>.gitignore</info>', true, IOInterface::VERBOSE);
 			$filesystem['.gitignore']->after('.env', '.env.*');
 		}
 
 		if(!$filesystem['.gitignore']->exists('!' . $dotenvExamplePath)) {
 			$filesystem['.gitignore']->rewind();
+			$io->write('Add <comment>!' . $dotenvExamplePath . '</comment> to <info>.gitignore</info>', true, IOInterface::VERBOSE);
 			$filesystem['.gitignore']->after('.env.*', '!' . $dotenvExamplePath);
 		}
 
 
 		// wp-cli
 		$wpcliPath = 'wp-cli.yml';
+		$io->write('Create <info>' . $wpcliPath . '</info>', true, IOInterface::NORMAL);
 		$filesystem[$wpcliPath] = new TemplateFile($twig, 'wordpress/wp-cli.yml');
 
 		if(!$filesystem['.gitignore']->exists('wp-cli.local.yml')) {
@@ -261,11 +291,14 @@ class InitCommand extends BaseCommand {
 		$composerFilePath = Factory::getComposerFile();
 
 		$filesystem[$composerFilePath] = new ComposerFile($filesystem[$composerFilePath]);
+		$io->write('Modify <info>' . $composerFilePath . '</info>', true, IOInterface::NORMAL);
 
 		// extra.wordpress-install-dir
+		$io->write('Add <comment>wordpress-install-dir</comment> to <info>' . $composerFilePath . '</info>', true, IOInterface::VERBOSE);
 		$filesystem[$composerFilePath]->addProperty('extra.wordpress-install-dir', $wpInstallPath);
 
 		// extra.installer-paths
+		$io->write('Add <comment>installer-paths</comment> to <info>' . $composerFilePath . '</info>', true, IOInterface::VERBOSE);
 		$filesystem[$composerFilePath]->addProperty('extra.installer-paths.' . $mupluginsPath . '/{$name}', array('type:wordpress-muplugin'));
 		$filesystem[$composerFilePath]->addProperty('extra.installer-paths.' . $pluginsPath . '/{$name}', array('type:wordpress-plugin'));
 		$filesystem[$composerFilePath]->addProperty('extra.installer-paths.' . $themesPath . '/{$name}', array('type:wordpress-theme'));
