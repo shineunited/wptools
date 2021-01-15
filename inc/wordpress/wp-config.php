@@ -35,23 +35,23 @@ if(!defined('WP_HOME')) {
 
 	$domain = $_SERVER['HTTP_HOST'];
 
-{% if path('home-dir', 'webroot') == './' %}
-	define('WP_HOME', $scheme . '://' . $domain);
-{% else %}
+{% if path('home-dir', 'webroot')|length > 0 %}
 	define('WP_HOME', $scheme . '://' . $domain . '/{{ path('home-dir', 'webroot') }}');
+{% else %}
+	define('WP_HOME', $scheme . '://' . $domain);
 {% endif %}
 }
 
 if(!defined('WP_SITEURL')) {
-{% if path('install-dir', 'home-dir') == './' %}
-	define('WP_SITEURL', WP_HOME);
-{% else %}
+{% if path('install-dir', 'home-dir')|length > 0 %}
 	define('WP_SITEURL', WP_HOME . '/{{ path('install-dir', 'home-dir') }}');
+{% else %}
+	define('WP_SITEURL', WP_HOME);
 {% endif %}
 }
 
 if(!defined('WP_CONTENT_DIR')) {
-	define('WP_CONTENT_DIR', WEBROOT . '/{{ path('content-dir', 'home-dir') }}');
+	define('WP_CONTENT_DIR', __DIR__ . '/{{ path('content-dir', 'wpconfig-dir') }}');
 }
 
 if(!defined('WP_CONTENT_URL')) {
@@ -59,7 +59,7 @@ if(!defined('WP_CONTENT_URL')) {
 }
 
 if(!defined('ABSPATH')) {
-	define('ABSPATH', WEBROOT . '/{{ path('install-dir', 'webroot') }}');
+	define('ABSPATH', __DIR__ . '/{{ path('install-dir', 'wpconfig-dir') }}');
 }
 
 require_once(ABSPATH . 'wp-settings.php');

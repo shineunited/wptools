@@ -152,7 +152,11 @@ class Config {
 		$relativeToPath = $this->getPath($relativeTo, false);
 		$path = $this->filesystem->makePathRelative($targetPath, $relativeToPath);
 
-		return rtrim($path, '/');
+		if($path == './') {
+			return '';
+		} else {
+			return rtrim($path, '/');
+		}
 	}
 
 	public function setPath($name, $path) {
