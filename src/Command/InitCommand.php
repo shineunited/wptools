@@ -25,7 +25,6 @@ use Composer\Factory;
 
 class InitCommand extends BaseCommand {
 	private $config;
-	//private $pathOptions;
 
 	protected function configure() {
 		parent::configure();
@@ -33,7 +32,13 @@ class InitCommand extends BaseCommand {
 
 		$requireCommand = new RequireCommand();
 		$requireDefinition = $requireCommand->getDefinition();
-		$this->getDefinition()->setOptions($requireDefinition->getOptions());
+
+		$definition = $this->getDefinition();
+		if($requireDefinition->hasOption('fixed')) {
+			$definition->addOption($requireDefinition->getOption('fixed'));
+		}
+
+		$definition->addOption($requireDefinition->getOption('dry-run'));
 	}
 
 	protected function interact(InputInterface $input, OutputInterface $output) {
@@ -269,61 +274,28 @@ class InitCommand extends BaseCommand {
 
 
 		// save filesystem
-		$filesystem->save();
+		if(!$input->getOption('dry-run')) {
+			$filesystem->save();
+		}
 
 		// run requires
 		$requireCommand = $this->getApplication()->find('wp-require');
 		$requireDefinition = $requireCommand->getDefinition();
 
-		$input->bind($requireDefinition);
-		$input->setInteractive(false);
-		$input->setArgument('packages', array('bedrock'));
+		$requireParameters = array();
 
-		print_r($input->getArguments());
+		$requireParameters['packages'] = array('bedrock');
 
-		$returnCode = $requireCommand->run($input, $output);
-	}
-
-	private function addPathOption($name, $description, $default) {
-		$this->pathOptions[$name] = array(
-			'description' => $description,
-			'default'     => $default
-		);
-	}
-
-	private function listPathOptionNames() {
-		return array_keys($this->pathOptions);
-	}
-
-	private function hasPathOptionConfig($name) {
-		if(isset($this->pathOptions[$name])) {
-			return true;
+		if($input->getOption('fixed')) {
+			$requireParameters['--fixed'] = true;
+		}
+		if($input->getOption('dry-run')) {
+			$requireParameters['--dry-run'] = true;
 		}
 
-		return false;
-	}
+		$requireInput = new ArrayInput($requireParameters);
 
-	private function getPathOptionConfig($name) {
-		if(!$this->hasPathOptionConfig($name)) {
-			throw new \Exception('Unknown path option "' . $name . '"');
-		}
-
-		return $this->pathOptions[$name];
-	}
-
-	private function getPathOptionDefault($name) {
-		$config = $this->getPathOptionConfig($name);
-		return $config['default'];
-	}
-
-	private function getPathOptionDescription($name) {
-		$config = $this->getPathOptionConfig($name);
-		return $config['description'] . '.';
-	}
-
-	private function getPathOptionQuestion($name) {
-		$config = $this->getPathOptionConfig($name);
-		return '<comment>' . $config['description'] . ' <info>(' . $config['default'] . ')</info>: ';
+		$returnCode = $requireCommand->run($requireInput, $output);
 	}
 
 	private function getConfig() {
