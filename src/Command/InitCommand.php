@@ -38,7 +38,9 @@ class InitCommand extends BaseCommand {
 			$definition->addOption($requireDefinition->getOption('fixed'));
 		}
 
-		$definition->addOption($requireDefinition->getOption('dry-run'));
+		if($requireDefinition->hasOption('dry-run')) {
+			$definition->addOption($requireDefinition->getOption('dry-run'));
+		}
 	}
 
 	protected function interact(InputInterface $input, OutputInterface $output) {
@@ -321,6 +323,7 @@ class InitCommand extends BaseCommand {
 		if($input->getOption('fixed')) {
 			$requireParameters['--fixed'] = true;
 		}
+		
 		if($input->getOption('dry-run')) {
 			$requireParameters['--dry-run'] = true;
 		}
