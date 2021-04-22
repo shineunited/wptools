@@ -320,11 +320,11 @@ class InitCommand extends BaseCommand {
 
 		$requireParameters['packages'] = array('bedrock');
 
-		if($input->getOption('fixed')) {
+		if($input->hasOption('fixed') && $input->getOption('fixed')) {
 			$requireParameters['--fixed'] = true;
 		}
-		
-		if($input->getOption('dry-run')) {
+
+		if($input->hasOption('dry-run') && $input->getOption('dry-run')) {
 			$requireParameters['--dry-run'] = true;
 		}
 
