@@ -308,7 +308,7 @@ class InitCommand extends BaseCommand {
 
 
 		// save filesystem
-		if(!$input->getOption('dry-run')) {
+		if(!$input->hasOption('dry-run') || !$input->getOption('dry-run')) {
 			$filesystem->save();
 		}
 
