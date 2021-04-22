@@ -15,7 +15,7 @@ use Env\Env;
 use function Env\env;
 
 
-Env::$options |= Env::USE_ENV_ARRAY;
+Env::$options |= Env::USE_SERVER_ARRAY;
 
 /**
  * Use Dotenv to set required environment variables and load .env file in root
